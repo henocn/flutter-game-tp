@@ -1,13 +1,15 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../db/db_helper.dart';
+import './niveau_scores_page.dart';
 
-class JeuFacilePage extends StatefulWidget {
-  const JeuFacilePage({super.key});
+class NiveauFacile extends StatefulWidget {
+  const NiveauFacile({super.key});
   @override
-  State<JeuFacilePage> createState() => _JeuFacilePageState();
+  State<NiveauFacile> createState() => _NiveauFacileState();
 }
 
-class _JeuFacilePageState extends State<JeuFacilePage> {
+class _NiveauFacileState extends State<NiveauFacile> {
   final TextEditingController _controller = TextEditingController();
   late int _nombreMystere;
   int _tentativesRestantes = 3;
@@ -19,87 +21,120 @@ class _JeuFacilePageState extends State<JeuFacilePage> {
   }
 
   void _genererNombre() {
-    _nombreMystere = Random().nextInt(10) + 1; // 1 à 10
+    _nombreMystere = Random().nextInt(10) + 1; // Nombre entre 1 et 10
     _tentativesRestantes = 3;
     _message = "";
     _controller.clear();
+    setState(() {});
   }
 
-  void _verifierNombre() {
+  void _verifierNombre() async {
     if (_controller.text.isEmpty) return;
     int proposition = int.tryParse(_controller.text) ?? 0;
-    setState(() {
-      if (proposition == _nombreMystere) {
-        _message = "Bravo ! Vous avez trouvé 🎉";
-        _afficherDialogueFin(true);
+    if (proposition == _nombreMystere) {
+      _message = "Bravo ! Vous avez trouvé 🎉";
+      await DBHelper.instance.insertScore(
+          3 - _tentativesRestantes + 1); // score = tentatives utilisées
+      _afficherDialogue(true);
+    } else {
+      _tentativesRestantes--;
+      if (_tentativesRestantes > 0) {
+        _message =
+            proposition < _nombreMystere ? "Trop petit !" : "Trop grand !";
       } else {
-        _tentativesRestantes--;
-        if (_tentativesRestantes > 0) {
-          _message =
-              proposition < _nombreMystere ? "Trop petit !" : "Trop grand !";
-        } else {
-          _message = "Perdu ! Le nombre était $_nombreMystere.";
-          _afficherDialogueFin(false);
-        }
+        _message = "Perdu . Le nombre était $_nombreMystere 😢";
+        await DBHelper.instance.insertScore(0); // 0 = perdu
+        _afficherDialogue(false);
       }
-    });
+    }
     _controller.clear();
+    setState(() {});
   }
 
-  void _afficherDialogueFin(bool victoire) {
+  void _afficherDialogue(bool victoire) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            title: Text(victoire ? "Victoire 🎉" : "Défaite ❌"),
-            content: Text(
-              victoire
-                  ? "Félicitations, vous avez trouvé le nombre mystère."
-                  : "Dommage ! Le nombre était $_nombreMystere.",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // fermer le dialogue
-                  _genererNombre(); // recommencer
-                  setState(() {});
-                },
-                child: Text("Continuer"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // fermer le dialogue
-                  Navigator.pop(context); // quitter le jeu
-                },
-                child: Text("Quitter"),
-              ),
-            ],
+      builder: (_) => AlertDialog(
+        title: Text(victoire ? "Victoire 🎉" : "Défaite 😢"),
+        content: Text(victoire
+            ? "Félicitations, vous avez gagné !"
+            : "Dommage ! Le nombre mystère était $_nombreMystere."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _genererNombre();
+            },
+            child: const Text("Continuer"),
           ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Quitter"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _voirScores() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ScoresPage()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Niveau facile")),
+      appBar: AppBar(
+        title: const Text("Niveau Facile"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            tooltip: "Voir les scores",
+            onPressed: _voirScores,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: "Réinitialiser",
+            onPressed: _genererNombre,
+          ),
+        ],
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Devinez un nombre entre 1 et 10"),
-            SizedBox(height: 10),
-            Text("Tentatives restantes : $_tentativesRestantes"),
+            const Text(
+              "Devinez le nombre mystère entre 1 et 10",
+              style: TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Tentatives restantes : $_tentativesRestantes",
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 10),
             TextField(
               controller: _controller,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: "Entrez votre nombre"),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Votre proposition",
+              ),
             ),
-            SizedBox(height: 10),
-            ElevatedButton(onPressed: _verifierNombre, child: Text("Vérifier")),
-            SizedBox(height: 20),
-            Text(_message, style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _verifierNombre,
+              child: const Text("Vérifier"),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _message,
+              style: const TextStyle(fontSize: 16, color: Colors.red),
+            ),
           ],
         ),
       ),

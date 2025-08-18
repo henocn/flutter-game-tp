@@ -1,40 +1,54 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 class MyHomePage extends StatelessWidget {
   final Function(ThemeMode) changerLeTheme;
+  final Function(Locale) changerLangue;
   const MyHomePage({
     super.key,
     required this.changerLeTheme,
+    required this.changerLangue,
   });
-
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // Raccourci pour traductions
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Choisir le jeu"),
+        title: Text(loc.chooseGame),
         actions: [
+// Sélecteur de langue
+          PopupMenuButton<Locale>(
+            icon: const Icon(Icons.language),
+            onSelected: (locale) {
+              changerLangue(locale);
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: Locale('fr'), child: Text(" Français 🇫🇷")),
+              PopupMenuItem(value: Locale('en'), child: Text(" English 🇺🇸")),
+              PopupMenuItem(value: Locale('de'), child: Text(" Deutsch 🇩🇪")),
+            ],
+          ),
+// Sélecteur de thème
           PopupMenuButton<ThemeMode>(
             icon: const Icon(Icons.color_lens),
             tooltip: "Changer le thème",
             onSelected: (ThemeMode modeDuThemeSElectionner) {
-            changerLeTheme(modeDuThemeSElectionner
-             ); // appelle la fonction
+              changerLeTheme(modeDuThemeSElectionner);
             },
-            itemBuilder:
-                (BuildContext context) => const [
-                  PopupMenuItem(
-                    value: ThemeMode.light,
-                    child: Text("Mode clair "),
-                  ),
-                  PopupMenuItem(
-                    value: ThemeMode.dark,
-                    child: Text("Mode sombre "),
-                  ),
-                  PopupMenuItem(
-                    value: ThemeMode.system,
-                    child: Text("Mode automatique "),
-                  ),
-                ],
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(
+                value: ThemeMode.light,
+                child: Text("Mode clair 🌞"),
+              ),
+              const PopupMenuItem(
+                value: ThemeMode.dark,
+                child: Text("Mode sombre 🌙"),
+              ),
+              const PopupMenuItem(
+                value: ThemeMode.system,
+                child: Text("Mode automatique 📱"),
+              ),
+            ],
           ),
         ],
       ),
@@ -43,16 +57,16 @@ class MyHomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              child: const Text("Jeu devinette"),
+              child: Text(loc.guessGame),
               onPressed: () {
-                Navigator.pushNamed(context, '/devinette_difficulte'); 
+                Navigator.pushNamed(context, '/devinette_difficulte');
               },
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              child: const Text("Jeu clairvoyant"),
+              child: Text(loc.seerGame),
               onPressed: () {
-                // page qui mène à la logique du jeu clairvoyant
+// Page du jeu clairvoyant
               },
             ),
           ],

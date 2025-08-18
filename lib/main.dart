@@ -1,9 +1,14 @@
-import "package:flutter/material.dart";
-import 'package:gametp/screens/devinette/guess_game_level.dart';
-import 'package:gametp/screens/devinette/niveau_devenette_facile.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import './l10n/app_localizations.dart';
 import './screens/home_page.dart';
+import './screens/devinette/home_devintte_game.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  // Initialisation pour Windows/Linux/macOS
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
   runApp(const MyApp());
 }
 
@@ -14,7 +19,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.system; // par défaut
+  Locale _locale = const Locale('fr'); // langue par défaut
+  void _changerLangue(Locale nouvelleLangue) {
+    setState(() {
+      _locale = nouvelleLangue;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,18 +43,27 @@ class _MyAppState extends State<MyApp> {
       ),
       // Applique le mode choisi
       themeMode: _themeMode,
+      // Localisation
+      locale: _locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate, // Texte traduit
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('fr'), Locale('en'), Locale('de')],
       initialRoute: '/accueil',
       routes: {
         '/accueil':
             (_) => MyHomePage(
               changerLeTheme: (ThemeMode mode) {
-              setState(() {
-              _themeMode = mode;
-              });
+                setState(() {
+                  _themeMode = mode;
+                });
               },
+              changerLangue: _changerLangue,
             ),
-        '/devinette_difficulte' : (_) => const GuessGameMenu(),
-        '/devinette_facile' : (_) => const JeuFacilePage()
+        '/devinette_difficulte': (_) => const GuessGameMenu(),
       },
     );
   }
