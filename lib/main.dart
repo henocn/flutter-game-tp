@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import 'package:gametp/screens/devinette/guess_game_level.dart';
-import 'package:gametp/screens/devinette/nivau_devenette_facile.dart';
+import 'package:gametp/screens/devinette/niveau_devenette_facile.dart';
 import './screens/home_page.dart';
 
 void main() {
