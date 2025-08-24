@@ -1,4 +1,4 @@
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 
 class DBHelper {
@@ -22,18 +22,20 @@ class DBHelper {
 CREATE TABLE scores(
 id INTEGER PRIMARY KEY AUTOINCREMENT,
 date TEXT,
-score INTEGER
+score INTEGER,
+difficulty TEXT
 )
 ''');
       },
     );
   }
 
-  Future<int> insertScore(int score) async {
+  Future<int> insertScore(int score, String difficulty) async {
     final db = await database;
     return await db.insert('scores', {
       'date': DateTime.now().toString(),
       'score': score,
+      'difficulty': difficulty,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

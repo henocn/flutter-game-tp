@@ -33,8 +33,7 @@ class _NiveauFacileState extends State<NiveauFacile> {
     int proposition = int.tryParse(_controller.text) ?? 0;
     if (proposition == _nombreMystere) {
       _message = "Bravo ! Vous avez trouvé 🎉";
-      await DBHelper.instance.insertScore(
-          3 - _tentativesRestantes + 1); // score = tentatives utilisées
+      await DBHelper.instance.insertScore(3 - _tentativesRestantes + 1, "facile"); // score = tentatives utilisées
       _afficherDialogue(true);
     } else {
       _tentativesRestantes--;
@@ -43,7 +42,7 @@ class _NiveauFacileState extends State<NiveauFacile> {
             proposition < _nombreMystere ? "Trop petit !" : "Trop grand !";
       } else {
         _message = "Perdu . Le nombre était $_nombreMystere 😢";
-        await DBHelper.instance.insertScore(0); // 0 = perdu
+        await DBHelper.instance.insertScore(0, "facile"); // 0 = perdu
         _afficherDialogue(false);
       }
     }
